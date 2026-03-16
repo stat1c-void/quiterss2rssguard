@@ -6,11 +6,20 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
 
+[dependency-groups]
+dev = ["pytest >= 9.0.2"]
+
 [tool.ruff]
 line-length = 99
 
 [tool.ruff.lint]
 extend-select = ["I"]
+
+[tool.pytest]
+minversion = "9.0"
+addopts = ["-ra", "--tb=short"]
+testpaths = ["tests"]
+pythonpath = ["."]
 
 [tool.poe.tasks.lint]
 sequence = [
