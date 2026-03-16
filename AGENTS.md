@@ -2,10 +2,11 @@
 
 ## Project Overview
 
-- **Type**: Standalone python script
+- **Type**: Standalone python script for database migration
 - **Python**: 3.10+
 - **Package Manager**: uv
 - **Databases**: SQLite v3
+- **Purpose**: Migrate feed data from QuiteRSS database to RSS Guard database
 
 Prefer built-in Python library over third-party packages.
 
@@ -13,12 +14,19 @@ Prefer built-in Python library over third-party packages.
 
 Remember to use `uv` to run python commands.
 
-### Linting & Formatting
+### Development Commands
 
-There are convenient shortcuts for for linting and formatting using `poe` task runner:
+- `uv run python -m quiterss2rssguard` - Run the main script
+- `uv run poe lint` - Run linting checks (uv lock, ruff format, ruff check, ty check)
+- `uv run poe format` - Format code (ruff check --select I --fix, ruff format)
 
-- `poe lint` - runs uv lock check and ruff linting
-- `poe format` - runs ruff formatter
+### Testing
+
+There are currently no tests in this project. When adding tests:
+
+- Use `uv run pytest` or `uv run python -m pytest`
+- Run a single test: `uv run pytest tests/test_file.py::test_function`
+- Run tests in specific directory: `uv run pytest tests/`
 
 ## Code Style Guidelines
 
@@ -26,7 +34,7 @@ There are convenient shortcuts for for linting and formatting using `poe` task r
 
 - Follow PEP 8 style guide
 - Use 4-space indentation
-- Max line length: 100 characters
+- Max line length: 99 characters (configured in pyproject.toml)
 - Prefer f-strings over `.format()` or `%` formatting
 
 ### Imports
@@ -42,11 +50,17 @@ from pathlib import Path
 from .data import Feed
 ```
 
+### Type Hints
+
+- Use type hints for all function parameters and return values
+- Use standard library types (e.g., `str`, `int`, `list`, `dict`)
+- Import `typing` only if needed for older Python compatibility features
+
 ### Naming Conventions
 
-- Classes: `PascalCase` (e.g., `MyModel`, `MyViewSet`)
-- Functions/methods: `snake_case` (e.g., `get_context_data`)
-- Variables: `snake_case` (e.g., `user_input`, `total_count`)
+- Classes: `PascalCase` (e.g., `Feed`, `DatabaseMigrator`)
+- Functions/methods: `snake_case` (e.g., `migrate_feeds`, `connect_db`)
+- Variables: `snake_case` (e.g., `source_path`, `target_db`)
 - Constants: `UPPER_SNAKE_CASE` (e.g., `MAX_RETRIES`)
 - Database fields: `snake_case` (e.g., `created_at`, `is_active`)
 
@@ -54,7 +68,26 @@ from .data import Feed
 
 - Catch specific exceptions rather than bare `except`
 - Log errors using python logging framework
+- Validate file paths and database connections early
+- Use try/except for database operations
+
+### Git Workflow
+
+- Commit messages should be concise and descriptive
+- Use imperative mood (e.g., "Add feature", "Fix bug")
+- Reference issue numbers if applicable
 
 ## Project Structure
 
-(TODO)
+- `quiterss2rssguard/` - Main package directory
+    - `__main__.py` - Entry point
+    - `data.py` - Data models (dataclasses)
+    - `__init__.py` - Package initialization
+- `tests/` - Test directory (to be created)
+- `docs/` - Documentation files
+
+## Additional Notes
+
+- This is a database migration tool - handle SQLite connections carefully
+- Make backups before modifying target database
+- Validate data integrity during migration
