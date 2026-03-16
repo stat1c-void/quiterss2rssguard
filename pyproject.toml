@@ -1,0 +1,31 @@
+[project]
+name = "quiterss2rssguard"
+version = "0.1.0"
+description = "Database migration script from QuiteRSS to RSS Guard"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.ruff]
+line-length = 99
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.poe.tasks.lint]
+sequence = [
+    "uv lock --check",
+    "ruff format --check .",
+    "ruff check .",
+    "ty check .",
+]
+default_item_type = "cmd"
+help = "Lint project (check only)"
+
+[tool.poe.tasks.format]
+sequence = [
+    "ruff check --select I --fix",
+    "ruff format .",
+]
+default_item_type = "cmd"
+help = "Format project (changes files)"
