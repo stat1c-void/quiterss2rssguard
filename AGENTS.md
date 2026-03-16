@@ -8,8 +8,6 @@
 - **Databases**: SQLite v3
 - **Purpose**: Migrate feed data from QuiteRSS database to RSS Guard database
 
-Prefer built-in Python library over third-party packages.
-
 ## Build/Lint/Test Commands
 
 Remember to use `uv` to run python commands.
@@ -58,9 +56,9 @@ from .data import Feed
 
 ### Naming Conventions
 
-- Classes: `PascalCase` (e.g., `Feed`, `DatabaseMigrator`)
-- Functions/methods: `snake_case` (e.g., `migrate_feeds`, `connect_db`)
-- Variables: `snake_case` (e.g., `source_path`, `target_db`)
+- Classes: `PascalCase` (e.g., `Feed`, `QuiteRssStore`)
+- Functions/methods: `snake_case` (e.g., `read_feeds`, `open`)
+- Variables: `snake_case` (e.g., `db_path`, `version_row`)
 - Constants: `UPPER_SNAKE_CASE` (e.g., `MAX_RETRIES`)
 - Database fields: `snake_case` (e.g., `created_at`, `is_active`)
 
@@ -70,6 +68,7 @@ from .data import Feed
 - Log errors using python logging framework
 - Validate file paths and database connections early
 - Use try/except for database operations
+- Raise descriptive errors with context (e.g., `ValueError`, `RuntimeError`)
 
 ### Git Workflow
 
@@ -83,11 +82,14 @@ from .data import Feed
     - `__main__.py` - Entry point
     - `data.py` - Data models (dataclasses)
     - `__init__.py` - Package initialization
-- `tests/` - Test directory (to be created)
+    - `store/quiterss.py` - QuiteRSS database store implementation
+- `tests/` - Test directory
 - `docs/` - Documentation files
 
 ## Additional Notes
 
 - This is a database migration tool - handle SQLite connections carefully
+- Use context managers (`with` statements) for database connections
 - Make backups before modifying target database
 - Validate data integrity during migration
+- Prefer built-in Python libraries (sqlite3, pathlib) over third-party packages
