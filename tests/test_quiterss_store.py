@@ -8,15 +8,7 @@ from quiterss2rssguard.store import QuiteRssStore
 
 
 @pytest.fixture
-def db_file():
-    """Create a temporary database file and yield its path."""
-    with tempfile.NamedTemporaryFile(suffix=".db") as f:
-        db_path = Path(f.name)
-        yield db_path
-
-
-@pytest.fixture
-def test_db(db_file):
+def quite_rss_db(db_file):
     """Create a test QuiteRSS database with sample data."""
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
@@ -65,9 +57,9 @@ def test_db(db_file):
     yield db_file
 
 
-def test_read_feeds_valid_db(test_db):
+def test_read_feeds_valid_db(quite_rss_db):
     """Test reading feeds from a valid database."""
-    with QuiteRssStore(test_db) as store:
+    with QuiteRssStore(quite_rss_db) as store:
         feeds = store.read_feeds()
 
     assert len(feeds) == 2
@@ -98,6 +90,7 @@ def test_read_feeds_nonexistent_db():
                 pass
 
 
+# FIXME: use quite_rss_db, but modify version row
 def test_read_feeds_wrong_version(db_file):
     """Test that reading from a database with wrong version raises ValueError."""
     with sqlite3.connect(db_file) as conn:
@@ -118,6 +111,7 @@ def test_read_feeds_wrong_version(db_file):
             pass
 
 
+# FIXME: use quite_rss_db, just remove existing rows, and add needed rows later
 def test_read_feeds_empty_values(db_file):
     """Test handling of NULL/empty values in database."""
     with sqlite3.connect(db_file) as conn:
@@ -175,9 +169,9 @@ def test_read_feeds_empty_values(db_file):
     assert feed.url_html == "https://example.com"
 
 
-def test_explicit_open_close(test_db):
+def test_explicit_open_close(quite_rss_db):
     """Test explicit open/close methods."""
-    store = QuiteRssStore(test_db)
+    store = QuiteRssStore(quite_rss_db)
     store.open()
     try:
         feeds = store.read_feeds()
@@ -186,8 +180,8 @@ def test_explicit_open_close(test_db):
         store.close()
 
 
-def test_read_without_connection(test_db):
+def test_read_without_connection(quite_rss_db):
     """Test that reading without an open connection raises RuntimeError."""
-    store = QuiteRssStore(test_db)
+    store = QuiteRssStore(quite_rss_db)
     with pytest.raises(RuntimeError, match="Database connection is not open"):
         store.read_feeds()

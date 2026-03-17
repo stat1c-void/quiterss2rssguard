@@ -2,32 +2,20 @@
 QuiteRSS database store implementation.
 """
 
+from __future__ import annotations
+
 import logging
-import sqlite3
-from pathlib import Path
-from typing import Optional
 
 from ..data import Feed
+from .base import BaseStore
 
 logger = logging.getLogger(__name__)
 
 
-class QuiteRssStore:
+class QuiteRssStore(BaseStore):
     """
     Manages connection to a QuiteRSS SQLite database.
-
-    Supports context manager protocol for automatic connection management.
     """
-
-    def __init__(self, db_path: Path):
-        """
-        Initialize the store with a database path.
-
-        Args:
-            db_path: Path to the QuiteRSS SQLite database
-        """
-        self.db_path = db_path
-        self._connection: Optional[sqlite3.Connection] = None
 
     def open(self) -> "QuiteRssStore":
         """
@@ -40,12 +28,12 @@ class QuiteRssStore:
             ValueError: If database file not found or version is not 17
             sqlite3.Error: If database operations fail
         """
-        if not self.db_path.exists():
-            raise ValueError(f"Database file not found: {self.db_path}")
-
-        self._connection = sqlite3.connect(self.db_path)
+        super().open()
 
         # Validate database version
+        if self._connection is None:
+            raise RuntimeError("Database connection failed to initialize")
+
         cursor = self._connection.cursor()
         cursor.execute("SELECT value FROM info WHERE name = 'version'")
         version_row = cursor.fetchone()
@@ -59,24 +47,9 @@ class QuiteRssStore:
 
         return self
 
-    def close(self) -> None:
-        """
-        Close the database connection.
-
-        Raises:
-            sqlite3.Error: If closing the connection fails
-        """
-        if self._connection:
-            self._connection.close()
-            self._connection = None
-
     def __enter__(self) -> "QuiteRssStore":
         """Enter context manager, opening the database connection."""
         return self.open()
-
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        """Exit context manager, closing the database connection."""
-        self.close()
 
     def read_feeds(self) -> list[Feed]:
         """
