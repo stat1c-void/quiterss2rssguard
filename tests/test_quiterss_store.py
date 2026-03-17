@@ -90,54 +90,25 @@ def test_read_feeds_nonexistent_db():
                 pass
 
 
-# FIXME: use quite_rss_db, but modify version row
-def test_read_feeds_wrong_version(db_file):
+def test_read_feeds_wrong_version(quite_rss_db):
     """Test that reading from a database with wrong version raises ValueError."""
-    with sqlite3.connect(db_file) as conn:
+    with sqlite3.connect(quite_rss_db) as conn:
         cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE info
-            (
-                id    integer primary key,
-                name  varchar,
-                value varchar
-            )
-        """)
-        cursor.execute("INSERT INTO info (id, name, value) VALUES (1, 'version', '16')")
+        cursor.execute("UPDATE info SET value = '16' WHERE id = 1")
         conn.commit()
 
     with pytest.raises(ValueError, match="Unsupported database version"):
-        with QuiteRssStore(db_file):
+        with QuiteRssStore(quite_rss_db):
             pass
 
 
-# FIXME: use quite_rss_db, just remove existing rows, and add needed rows later
-def test_read_feeds_empty_values(db_file):
+def test_read_feeds_empty_values(quite_rss_db):
     """Test handling of NULL/empty values in database."""
-    with sqlite3.connect(db_file) as conn:
+    with sqlite3.connect(quite_rss_db) as conn:
         cursor = conn.cursor()
 
-        cursor.execute("""
-            CREATE TABLE info
-            (
-                id    integer primary key,
-                name  varchar,
-                value varchar
-            )
-        """)
-        cursor.execute("INSERT INTO info (id, name, value) VALUES (1, 'version', '17')")
-
-        cursor.execute("""
-            CREATE TABLE feeds
-            (
-                id integer primary key,
-                text varchar,
-                title varchar,
-                description varchar,
-                xmlUrl varchar,
-                htmlUrl varchar
-            )
-        """)
+        # Delete existing feeds
+        cursor.execute("DELETE FROM feeds")
 
         # Insert feed with NULL values for required fields (name and url)
         # This feed should be skipped
@@ -155,7 +126,7 @@ def test_read_feeds_empty_values(db_file):
 
         conn.commit()
 
-    with QuiteRssStore(db_file) as store:
+    with QuiteRssStore(quite_rss_db) as store:
         feeds = store.read_feeds()
 
     # Only the valid feed should be returned (id 2)

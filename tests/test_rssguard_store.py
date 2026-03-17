@@ -86,63 +86,27 @@ def test_open_valid_db(rss_guard_db):
         assert store.account_id == 1
 
 
-# FIXME: use rss_guard_db, but modify version row
-def test_open_wrong_version(db_file):
+def test_open_wrong_version(rss_guard_db):
     """Test that opening a database with wrong schema version raises ValueError."""
-    with sqlite3.connect(db_file) as conn:
+    with sqlite3.connect(rss_guard_db) as conn:
         cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE Information
-            (
-                inf_key   VARCHAR(128) NOT NULL UNIQUE CHECK (inf_key != ''),
-                inf_value TEXT
-            )
-        """)
-        cursor.execute(
-            "INSERT INTO Information (inf_key, inf_value) VALUES ('schema_version', '7')"
-        )
+        cursor.execute("UPDATE Information SET inf_value = '7' WHERE inf_key = 'schema_version'")
         conn.commit()
 
     with pytest.raises(ValueError, match="Unsupported database schema version"):
-        with RssGuardStore(db_file):
+        with RssGuardStore(rss_guard_db):
             pass
 
 
-# FIXME: make simpler - use rss_guard_db and delete all Accounts rows
-def test_open_no_std_rss_account(db_file):
+def test_open_no_std_rss_account(rss_guard_db):
     """Test that opening a database without std-rss account raises ValueError."""
-    with sqlite3.connect(db_file) as conn:
+    with sqlite3.connect(rss_guard_db) as conn:
         cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE Information
-            (
-                inf_key   VARCHAR(128) NOT NULL UNIQUE CHECK (inf_key != ''),
-                inf_value TEXT
-            )
-        """)
-        cursor.execute(
-            "INSERT INTO Information (inf_key, inf_value) VALUES ('schema_version', '8')"
-        )
-
-        # Create empty Accounts table
-        cursor.execute("""
-            CREATE TABLE Accounts
-            (
-                id             INTEGER PRIMARY KEY,
-                ordr           INTEGER NOT NULL CHECK (ordr >= 0),
-                type           TEXT    NOT NULL CHECK (type != ''),
-                proxy_type     INTEGER NOT NULL DEFAULT 0 CHECK (proxy_type >= 0),
-                proxy_host     TEXT,
-                proxy_port     INTEGER,
-                proxy_username TEXT,
-                proxy_password TEXT,
-                custom_data    TEXT
-            )
-        """)
+        cursor.execute("DELETE FROM Accounts")
         conn.commit()
 
     with pytest.raises(ValueError, match="No 'std-rss' account found"):
-        with RssGuardStore(db_file):
+        with RssGuardStore(rss_guard_db):
             pass
 
 
