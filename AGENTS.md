@@ -65,10 +65,15 @@ from .data import Feed
 ### Error Handling
 
 - Catch specific exceptions rather than bare `except`
-- Log errors using python logging framework
 - Validate file paths and database connections early
 - Use try/except for database operations
 - Raise descriptive errors with context (e.g., `ValueError`, `RuntimeError`)
+
+### Logging
+
+- Use python build-in logging framework
+- Log messages should start with lowercase (unless first word is an abbreviation)
+- Log messages should use logging framework %-style string formatting
 
 ### Git Workflow
 
