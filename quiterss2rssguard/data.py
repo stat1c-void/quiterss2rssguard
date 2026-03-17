@@ -12,4 +12,4 @@ class Feed:
     url_html: str
 
     def __repr__(self) -> str:
-        return f"Feed(id={self.id}, name={self.name!r}, url={self.url!r})"
+        return f"Feed(id={self.id}, name={self.name!r})"
