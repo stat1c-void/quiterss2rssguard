@@ -3,7 +3,7 @@ import sqlite3
 import pytest
 
 from quiterss2rssguard.data import Feed
-from quiterss2rssguard.store import RssGuardStore
+from quiterss2rssguard.store import RssGuardStore, StoreValidationError
 
 
 @pytest.fixture
@@ -87,25 +87,25 @@ def test_open_valid_db(rss_guard_db):
 
 
 def test_open_wrong_version(rss_guard_db):
-    """Test that opening a database with wrong schema version raises ValueError."""
+    """Test that opening a database with wrong schema version raises StoreValidationError."""
     with sqlite3.connect(rss_guard_db) as conn:
         cursor = conn.cursor()
         cursor.execute("UPDATE Information SET inf_value = '7' WHERE inf_key = 'schema_version'")
         conn.commit()
 
-    with pytest.raises(ValueError, match="Unsupported database schema version"):
+    with pytest.raises(StoreValidationError, match="Unsupported database schema version"):
         with RssGuardStore(rss_guard_db):
             pass
 
 
 def test_open_no_std_rss_account(rss_guard_db):
-    """Test that opening a database without std-rss account raises ValueError."""
+    """Test that opening a database without std-rss account raises StoreValidationError."""
     with sqlite3.connect(rss_guard_db) as conn:
         cursor = conn.cursor()
         cursor.execute("DELETE FROM Accounts")
         conn.commit()
 
-    with pytest.raises(ValueError, match="No 'std-rss' account found"):
+    with pytest.raises(StoreValidationError, match="No 'std-rss' account found"):
         with RssGuardStore(rss_guard_db):
             pass
 

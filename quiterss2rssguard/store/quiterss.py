@@ -8,7 +8,7 @@ import logging
 from typing import Self
 
 from ..data import Feed
-from .base import BaseStore
+from .base import BaseStore, StoreConnectionError, StoreOperationError, StoreValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -26,25 +26,28 @@ class QuiteRssStore(BaseStore):
             self for method chaining
 
         Raises:
-            ValueError: If database file not found or version is not 17
+            StoreConnectionError: If database file not found or connection fails
+            StoreValidationError: If database version is not 17
             sqlite3.Error: If database operations fail
         """
         super().open()
 
         # Validate database version
         if self._connection is None:
-            raise RuntimeError("Database connection failed to initialize")
+            raise StoreConnectionError("Database connection failed to initialize")
 
         cursor = self._connection.cursor()
         cursor.execute("SELECT value FROM info WHERE name = 'version'")
         version_row = cursor.fetchone()
 
         if not version_row:
-            raise ValueError("Could not determine database version")
+            raise StoreValidationError("Could not determine database version")
 
         version = int(version_row[0])
         if version != 17:
-            raise ValueError(f"Unsupported database version: {version}. Expected version 17.")
+            raise StoreValidationError(
+                f"Unsupported database version: {version}. Expected version 17."
+            )
 
         return self
 
@@ -56,10 +59,12 @@ class QuiteRssStore(BaseStore):
             List of Feed objects
 
         Raises:
-            RuntimeError: If database is not open
+            StoreOperationError: If database is not open
         """
         if not self._connection:
-            raise RuntimeError("Database connection is not open. Use 'with' block or call open().")
+            raise StoreOperationError(
+                "Database connection is not open. Use 'with' block or call open()."
+            )
 
         cursor = self._connection.cursor()
         cursor.execute("""

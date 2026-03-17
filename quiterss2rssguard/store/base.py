@@ -1,7 +1,6 @@
 """
 Base class for database store implementations.
 """
-# TODO: add custom exception classes for stores
 
 import logging
 import sqlite3
@@ -9,6 +8,22 @@ from pathlib import Path
 from typing import Optional, Self
 
 logger = logging.getLogger(__name__)
+
+
+class StoreError(Exception):
+    """Base exception for all store-related errors."""
+
+
+class StoreConnectionError(StoreError):
+    """Raised when there are issues connecting to the database."""
+
+
+class StoreValidationError(StoreError):
+    """Raised when database validation fails (e.g., wrong version, missing account)."""
+
+
+class StoreOperationError(StoreError):
+    """Raised when database operations fail."""
 
 
 class BaseStore:
@@ -36,11 +51,11 @@ class BaseStore:
             self for method chaining
 
         Raises:
-            ValueError: If database file not found
+            StoreConnectionError: If database file not found
             sqlite3.Error: If database operations fail
         """
         if not self.db_path.exists():
-            raise ValueError(f"Database file not found: {self.db_path}")
+            raise StoreConnectionError(f"Database file not found: {self.db_path}")
 
         self._connection = sqlite3.connect(self.db_path)
         return self

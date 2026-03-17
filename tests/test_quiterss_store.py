@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from quiterss2rssguard.store import QuiteRssStore
+from quiterss2rssguard.store import (
+    QuiteRssStore,
+    StoreConnectionError,
+    StoreOperationError,
+    StoreValidationError,
+)
 
 
 @pytest.fixture
@@ -81,23 +86,23 @@ def test_read_feeds_valid_db(quite_rss_db):
 
 
 def test_read_feeds_nonexistent_db():
-    """Test that reading from a non-existent database raises ValueError."""
+    """Test that reading from a non-existent database raises StoreConnectionError."""
     with tempfile.TemporaryDirectory() as tmpdir:
         non_existent_db = Path(tmpdir) / "nonexistent.db"
 
-        with pytest.raises(ValueError, match="Database file not found"):
+        with pytest.raises(StoreConnectionError, match="Database file not found"):
             with QuiteRssStore(non_existent_db):
                 pass
 
 
 def test_read_feeds_wrong_version(quite_rss_db):
-    """Test that reading from a database with wrong version raises ValueError."""
+    """Test that reading from a database with wrong version raises StoreValidationError."""
     with sqlite3.connect(quite_rss_db) as conn:
         cursor = conn.cursor()
         cursor.execute("UPDATE info SET value = '16' WHERE id = 1")
         conn.commit()
 
-    with pytest.raises(ValueError, match="Unsupported database version"):
+    with pytest.raises(StoreValidationError, match="Unsupported database version"):
         with QuiteRssStore(quite_rss_db):
             pass
 
@@ -152,7 +157,7 @@ def test_explicit_open_close(quite_rss_db):
 
 
 def test_read_without_connection(quite_rss_db):
-    """Test that reading without an open connection raises RuntimeError."""
+    """Test that reading without an open connection raises StoreOperationError."""
     store = QuiteRssStore(quite_rss_db)
-    with pytest.raises(RuntimeError, match="Database connection is not open"):
+    with pytest.raises(StoreOperationError, match="Database connection is not open"):
         store.read_feeds()
