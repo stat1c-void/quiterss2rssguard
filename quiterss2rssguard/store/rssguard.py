@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Self
 
 from ..data import Feed
 from .base import BaseStore
@@ -22,8 +23,7 @@ class RssGuardStore(BaseStore):
         super().__init__(db_path)
         self.account_id: int = 0
 
-    # FIXME: Self type?
-    def open(self) -> "RssGuardStore":
+    def open(self) -> Self:
         """
         Open database connection and validate version.
 
@@ -64,11 +64,6 @@ class RssGuardStore(BaseStore):
         logger.info("found std-rss account with id: %d", self.account_id)
 
         return self
-
-    # FIXME: Self type?
-    def __enter__(self) -> "RssGuardStore":
-        """Enter context manager, opening the database connection."""
-        return self.open()
 
     def store_feed(self, feed: Feed) -> None:
         """

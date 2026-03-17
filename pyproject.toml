@@ -3,7 +3,7 @@ name = "quiterss2rssguard"
 version = "0.1.0"
 description = "Database migration script from QuiteRSS to RSS Guard"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = []
 
 [dependency-groups]

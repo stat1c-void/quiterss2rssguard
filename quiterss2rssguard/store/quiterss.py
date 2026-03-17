@@ -5,6 +5,7 @@ QuiteRSS database store implementation.
 from __future__ import annotations
 
 import logging
+from typing import Self
 
 from ..data import Feed
 from .base import BaseStore
@@ -17,7 +18,7 @@ class QuiteRssStore(BaseStore):
     Manages connection to a QuiteRSS SQLite database.
     """
 
-    def open(self) -> "QuiteRssStore":
+    def open(self) -> Self:
         """
         Open database connection and validate version.
 
@@ -46,10 +47,6 @@ class QuiteRssStore(BaseStore):
             raise ValueError(f"Unsupported database version: {version}. Expected version 17.")
 
         return self
-
-    def __enter__(self) -> "QuiteRssStore":
-        """Enter context manager, opening the database connection."""
-        return self.open()
 
     def read_feeds(self) -> list[Feed]:
         """

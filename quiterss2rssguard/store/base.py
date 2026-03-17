@@ -6,7 +6,7 @@ Base class for database store implementations.
 import logging
 import sqlite3
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Self
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +28,7 @@ class BaseStore:
         self.db_path = db_path
         self._connection: Optional[sqlite3.Connection] = None
 
-    # FIXME: self type?
-    def open(self) -> "BaseStore":
+    def open(self) -> Self:
         """
         Open database connection.
 
@@ -57,8 +56,7 @@ class BaseStore:
             self._connection.close()
             self._connection = None
 
-    # FIXME: self type?
-    def __enter__(self) -> "BaseStore":
+    def __enter__(self) -> Self:
         """Enter context manager, opening the database connection."""
         return self.open()
 
