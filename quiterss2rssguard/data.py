@@ -9,4 +9,7 @@ class Feed:
     title: str
     description: str
     url: str
-    urlHtml: str
+    url_html: str
+
+    def __repr__(self) -> str:
+        return f"Feed(id={self.id}, name={self.name!r}, url={self.url!r})"

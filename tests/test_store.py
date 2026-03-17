@@ -75,7 +75,7 @@ def test_read_feeds_valid_db():
         assert feed1.title == "Test Title"
         assert feed1.description == "Test Description"
         assert feed1.url == "https://example.com/rss"
-        assert feed1.urlHtml == "https://example.com"
+        assert feed1.url_html == "https://example.com"
 
         # Check second feed
         feed2 = feeds[1]
@@ -154,10 +154,18 @@ def test_read_feeds_empty_values():
                 )
             """)
 
-            # Insert feed with NULL values
+            # Insert feed with NULL values for required fields (name and url)
+            # This feed should be skipped
             cursor.execute("""
                 INSERT INTO feeds (id, text, title, description, xmlUrl, htmlUrl)
                 VALUES (1, NULL, NULL, NULL, NULL, NULL)
+            """)
+
+            # Insert a valid feed
+            cursor.execute("""
+                INSERT INTO feeds (id, text, title, description, xmlUrl, htmlUrl)
+                VALUES (2, 'Valid Feed', 'Valid Title', 'Valid Description', 
+                        'https://example.com/rss', 'https://example.com')
             """)
 
             conn.commit()
@@ -165,13 +173,15 @@ def test_read_feeds_empty_values():
         with QuiteRssStore(db_path) as store:
             feeds = store.read_feeds()
 
+        # Only the valid feed should be returned (id 2)
         assert len(feeds) == 1
         feed = feeds[0]
-        assert feed.name == ""
-        assert feed.title == ""
-        assert feed.description == ""
-        assert feed.url == ""
-        assert feed.urlHtml == ""
+        assert feed.id == 2
+        assert feed.name == "Valid Feed"
+        assert feed.title == "Valid Title"
+        assert feed.description == "Valid Description"
+        assert feed.url == "https://example.com/rss"
+        assert feed.url_html == "https://example.com"
 
     finally:
         db_path.unlink()

@@ -2,11 +2,14 @@
 QuiteRSS database store implementation.
 """
 
+import logging
 import sqlite3
 from pathlib import Path
 from typing import Optional
 
 from ..data import Feed
+
+logger = logging.getLogger(__name__)
 
 
 class QuiteRssStore:
@@ -97,14 +100,25 @@ class QuiteRssStore:
 
         feeds: list[Feed] = []
         for row in cursor.fetchall():
+            row_id, name, title, description, url, url_html = row
+
+            if not name or not url:
+                logger.warning(
+                    "Skipping feed with id %s: missing required fields (name=%r, url=%r)",
+                    row_id,
+                    name,
+                    url,
+                )
+                continue
+
             feed = Feed(
-                id=row[0],
+                id=row_id,
                 mapped_id=0,  # Will be assigned during migration to RSS Guard
-                name=row[1] or "",
-                title=row[2] or "",
-                description=row[3] or "",
-                url=row[4] or "",
-                urlHtml=row[5] or "",
+                name=name,
+                title=title or "",
+                description=description or "",
+                url=url,
+                url_html=url_html or "",
             )
             feeds.append(feed)
 
