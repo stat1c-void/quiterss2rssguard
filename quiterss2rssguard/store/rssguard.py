@@ -179,11 +179,7 @@ class RssGuardStore(BaseStore):
             if existing_id is None:
                 raise StoreOperationError("Database returned NULL for Message id")
             news_item.mapped_id = existing_id
-            logger.info(
-                "news item '%s' already exists in DB, mapped_id=%d",
-                news_item.title,
-                news_item.mapped_id,
-            )
+            logger.info("%s already exists in DB", news_item)
             return
 
         # Convert datetime to milliseconds timestamp
@@ -218,7 +214,7 @@ class RssGuardStore(BaseStore):
             raise StoreOperationError("Failed to get new news item ID after insert")
 
         news_item.mapped_id = new_id
-        logger.info("news item '%s' created in DB, mapped_id=%d", news_item.title, new_id)
+        logger.info("%s created in DB", news_item)
 
         # Commit changes
         self._connection.commit()

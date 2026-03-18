@@ -40,16 +40,11 @@ def main() -> None:
         with RssGuardStore(args.target) as target_store:
             for feed in feeds:
                 target_store.store_feed(feed)
-                logger.info(
-                    "migrated feed: %s (id=%d -> mapped_id=%d)",
-                    feed.name,
-                    feed.id,
-                    feed.mapped_id,
-                )
+                logger.info("migrated feed: %s", feed)
 
         logger.info("migration completed successfully")
-    except Exception as e:
-        logger.error("migration failed: %s", e)
+    except Exception:
+        logger.exception("migration failed")
         sys.exit(1)
 
 

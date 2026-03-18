@@ -14,7 +14,7 @@ class Feed:
     url_html: str
 
     def __str__(self) -> str:
-        return f"Feed(id={self.id}, name={self.name!r})"
+        return f"Feed(id={self.id}, mapped_id={self.mapped_id}, name={self.name!r})"
 
 
 @dataclass
@@ -28,3 +28,10 @@ class NewsItem:
     url: str
     date: dt.datetime
     preview: str
+
+    def __str__(self) -> str:
+        title = (self.title[:27] + "...") if len(self.title) > 30 else self.title
+        return (
+            f"NewsItem(id={self.id}, mapped_id={self.mapped_id}, "
+            f"feed={self.feed}, title={title!r})"
+        )
