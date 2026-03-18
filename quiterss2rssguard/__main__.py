@@ -1,4 +1,5 @@
 import argparse
+import contextlib
 import logging
 import shutil
 import sys
@@ -27,20 +28,28 @@ def main() -> None:
 
     # 2. Migration logic
     try:
-        # Load all feeds from source
-        with QuiteRssStore(args.source) as source_store:
+        # Load all feeds from source and store them in target
+        with contextlib.ExitStack() as stack:
+            source_store = stack.enter_context(QuiteRssStore(args.source))
+            target_store = stack.enter_context(RssGuardStore(args.target))
+
             feeds = source_store.read_feeds()
             logger.info("found %d feeds in source database", len(feeds))
 
-        if not feeds:
-            logger.info("no feeds found to migrate")
-            return
+            if not feeds:
+                logger.info("no feeds found to migrate")
+                return
 
-        # Store all feeds in target
-        with RssGuardStore(args.target) as target_store:
             for feed in feeds:
+                # Store feed in target
                 target_store.store_feed(feed)
-                logger.info("migrated feed: %s", feed)
+
+                # Load news items for this feed and save them to target
+                news_items = source_store.read_news_items(feed)
+                for item in news_items:
+                    target_store.store_news_item(item)
+
+                logger.info("processed feed '%s' with %d news items", feed.name, len(news_items))
 
         logger.info("migration completed successfully")
     except Exception:
