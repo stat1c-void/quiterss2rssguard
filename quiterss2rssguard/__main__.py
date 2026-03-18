@@ -68,7 +68,7 @@ def backup_database(path: Path) -> Path:
     """
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     backup_path = path.with_suffix(f".{timestamp}.bak")
-    shutil.copy2(path, backup_path)
+    shutil.copy(path, backup_path)
     return backup_path
 
 
