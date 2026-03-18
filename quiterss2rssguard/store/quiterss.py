@@ -80,7 +80,7 @@ class QuiteRssStore(BaseStore):
 
             if not name or not url:
                 logger.warning(
-                    "Skipping feed with id %s: missing required fields (name=%r, url=%r)",
+                    "skipping feed with id %s: missing required fields (name=%r, url=%r)",
                     row_id,
                     name,
                     url,
@@ -144,7 +144,7 @@ class QuiteRssStore(BaseStore):
 
             if not all([row_id, guid, title, published]):
                 logger.warning(
-                    "Skipping news item with id %s: missing required fields "
+                    "skipping news item with id %s: missing required fields "
                     "(guid=%r, title=%r, published=%r)",
                     row_id,
                     guid,
@@ -159,7 +159,7 @@ class QuiteRssStore(BaseStore):
                     url = guid
                 else:
                     logger.warning(
-                        "Skipping news item with id %s: missing URL and guidislink is not true",
+                        "skipping news item with id %s: missing URL and guidislink is not true",
                         row_id,
                     )
                     continue
@@ -168,7 +168,7 @@ class QuiteRssStore(BaseStore):
                 date = dt.datetime.fromisoformat(published)
             except ValueError:
                 logger.warning(
-                    "Skipping news item with id %s: invalid date format %r",
+                    "skipping news item with id %s: invalid date format %r",
                     row_id,
                     published,
                 )
@@ -187,5 +187,4 @@ class QuiteRssStore(BaseStore):
             )
             news_items.append(item)
 
-        logger.info("Read %d news items for feed: %s", len(news_items), feed.name)
         return news_items
