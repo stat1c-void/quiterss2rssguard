@@ -23,13 +23,11 @@ class QuiteRssStore(BaseStore):
         """
         Open database connection and validate version.
 
-        Returns:
-            self for method chaining
-
-        Raises:
-            StoreConnectionError: If database file not found or connection fails
-            StoreValidationError: If database version is not 17
-            sqlite3.Error: If database operations fail
+        :return: self for method chaining
+        :rtype: Self
+        :raises StoreConnectionError: If database file not found or connection fails
+        :raises StoreValidationError: If database version is not 17
+        :raises sqlite3.Error: If database operations fail
         """
         super().open()
 
@@ -56,11 +54,9 @@ class QuiteRssStore(BaseStore):
         """
         Read all feeds from the QuiteRSS database.
 
-        Returns:
-            List of Feed objects
-
-        Raises:
-            StoreOperationError: If database is not open
+        :return: List of Feed objects
+        :rtype: list[Feed]
+        :raises StoreOperationError: If database is not open
         """
         if not self._connection:
             raise StoreOperationError(
@@ -103,15 +99,13 @@ class QuiteRssStore(BaseStore):
         """
         Read news items for a given feed from the QuiteRSS database.
 
-        Args:
-            feed: Feed object to load news items for
-            skip_older_than: Filter out deleted items older than this duration
-
-        Returns:
-            List of NewsItem objects
-
-        Raises:
-            StoreOperationError: If database is not open
+        :param feed: Feed object to load news items for
+        :type feed: Feed
+        :param skip_older_than: Filter out deleted items older than this duration
+        :type skip_older_than: dt.timedelta
+        :return: List of NewsItem objects
+        :rtype: list[NewsItem]
+        :raises StoreOperationError: If database is not open
         """
         if not self._connection:
             raise StoreOperationError(

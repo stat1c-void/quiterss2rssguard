@@ -9,7 +9,14 @@ from quiterss2rssguard.store import RssGuardStore, StoreOperationError, StoreVal
 
 @pytest.fixture
 def rss_guard_db(db_file):
-    """Create a test RSS Guard database with sample data."""
+    """
+    Create a test RSS Guard database with sample data.
+
+    :param db_file: Fixture providing a temporary database file path
+    :type db_file: Path
+    :yields: Path to the created database file
+    :ytype: Path
+    """
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
 

@@ -61,11 +61,10 @@ def backup_database(path: Path) -> Path:
     """
     Creates a timestamped backup of the database file.
 
-    Args:
-        path: Path to the database file to backup
-
-    Returns:
-        Path to the created backup file
+    :param path: Path to the database file to backup
+    :type path: Path
+    :return: Path to the created backup file
+    :rtype: Path
     """
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     backup_path = path.with_suffix(f".{timestamp}.bak")

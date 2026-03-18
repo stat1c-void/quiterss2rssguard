@@ -27,13 +27,11 @@ class RssGuardStore(BaseStore):
         """
         Open database connection and validate version.
 
-        Returns:
-            self for method chaining
-
-        Raises:
-            StoreConnectionError: If database file not found or connection fails
-            StoreValidationError: If database schema version is not 8 or no std-rss account found
-            sqlite3.Error: If database operations fail
+        :return: self for method chaining
+        :rtype: Self
+        :raises StoreConnectionError: If database file not found or connection fails
+        :raises StoreValidationError: If database schema version is not 8 or no std-rss account found
+        :raises sqlite3.Error: If database operations fail
         """
         super().open()
 
@@ -70,12 +68,10 @@ class RssGuardStore(BaseStore):
         """
         Store a feed in the RSS Guard database.
 
-        Args:
-            feed: Feed object to store
-
-        Raises:
-            StoreOperationError: If database is not open
-            StoreOperationError: If database operations fail
+        :param feed: Feed object to store
+        :type feed: Feed
+        :raises StoreOperationError: If database is not open
+        :raises StoreOperationError: If database operations fail
         """
         if not self._connection:
             raise StoreOperationError(
@@ -146,13 +142,11 @@ class RssGuardStore(BaseStore):
         """
         Store a news item in the RSS Guard database.
 
-        Args:
-            news_item: NewsItem object to store
-
-        Raises:
-            StoreOperationError: If database is not open
-            StoreOperationError: If news item's feed is not migrated
-            StoreOperationError: If database operations fail
+        :param news_item: NewsItem object to store
+        :type news_item: NewsItem
+        :raises StoreOperationError: If database is not open
+        :raises StoreOperationError: If news item's feed is not migrated
+        :raises StoreOperationError: If database operations fail
         """
         if not self._connection:
             raise StoreOperationError(

@@ -24,7 +24,14 @@ def frozen_time():
 
 @pytest.fixture
 def quite_rss_db(db_file):
-    """Create a test QuiteRSS database with sample data."""
+    """
+    Create a test QuiteRSS database with sample data.
+
+    :param db_file: Fixture providing a temporary database file path
+    :type db_file: Path
+    :yields: Path to the created database file
+    :ytype: Path
+    """
     with sqlite3.connect(db_file) as conn:
         cursor = conn.cursor()
 

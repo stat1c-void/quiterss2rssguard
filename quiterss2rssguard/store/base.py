@@ -37,8 +37,8 @@ class BaseStore:
         """
         Initialize the store with a database path.
 
-        Args:
-            db_path: Path to the SQLite database
+        :param db_path: Path to the SQLite database
+        :type db_path: Path
         """
         self.db_path = db_path
         self._connection: Optional[sqlite3.Connection] = None
@@ -47,12 +47,10 @@ class BaseStore:
         """
         Open database connection.
 
-        Returns:
-            self for method chaining
-
-        Raises:
-            StoreConnectionError: If database file not found
-            sqlite3.Error: If database operations fail
+        :return: self for method chaining
+        :rtype: Self
+        :raises StoreConnectionError: If database file not found
+        :raises sqlite3.Error: If database operations fail
         """
         if not self.db_path.exists():
             raise StoreConnectionError(f"Database file not found: {self.db_path}")
@@ -64,8 +62,7 @@ class BaseStore:
         """
         Close the database connection.
 
-        Raises:
-            sqlite3.Error: If closing the connection fails
+        :raises sqlite3.Error: If closing the connection fails
         """
         if self._connection:
             self._connection.close()
