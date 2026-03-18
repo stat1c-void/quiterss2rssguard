@@ -142,7 +142,6 @@ def test_store_new_feed(rss_guard_db):
         id=1,
         mapped_id=0,
         name="Test Feed",
-        title="Test Title",
         description="Test Description",
         url="https://example.com/rss",
         url_html="https://example.com",
@@ -156,12 +155,11 @@ def test_store_new_feed(rss_guard_db):
         cursor = conn.cursor()
         cursor.execute(
             "SELECT id, title, source, custom_id, account_id FROM Feeds WHERE title = ?",
-            (feed.title,),
+            (feed.name,),
         )
         row = cursor.fetchone()
         assert row is not None
         stored_id, stored_title, stored_source, stored_custom_id, stored_account_id = row
-        assert stored_title == feed.title
         assert stored_source == feed.url
         assert stored_account_id == 1
         assert stored_custom_id == str(stored_id)  # Should be updated to match id
@@ -169,13 +167,13 @@ def test_store_new_feed(rss_guard_db):
 
 
 def test_store_existing_feed(rss_guard_db):
-    """Test storing an existing feed (by title)."""
+    """Test storing an existing feed (Feed.name -> title)."""
     # Insert a feed first
     with sqlite3.connect(rss_guard_db) as conn:
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO Feeds (ordr, title, source, category, update_type, account_id, custom_id)
-            VALUES (0, 'Existing Title', 'https://existing.com/rss', -1, 1, 1, '1')
+            VALUES (0, 'Existing Feed', 'https://existing.com/rss', -1, 1, 1, '1')
         """)
         conn.commit()
 
@@ -183,7 +181,6 @@ def test_store_existing_feed(rss_guard_db):
         id=999,
         mapped_id=0,
         name="Existing Feed",
-        title="Existing Title",
         description="",
         url="https://new-url.com/rss",
         url_html="",
@@ -202,7 +199,6 @@ def test_store_new_news_item(rss_guard_db):
         id=1,
         mapped_id=1,
         name="Test Feed",
-        title="Test Title",
         description="",
         url="https://example.com/rss",
         url_html="",
@@ -249,7 +245,6 @@ def test_store_existing_news_item(rss_guard_db):
         id=1,
         mapped_id=1,
         name="Test Feed",
-        title="Test Title",
         description="",
         url="https://example.com/rss",
         url_html="",
@@ -292,7 +287,6 @@ def test_store_news_item_unmapped_feed(rss_guard_db):
         id=1,
         mapped_id=0,  # Not mapped
         name="Test Feed",
-        title="Test Title",
         description="",
         url="https://example.com/rss",
         url_html="",

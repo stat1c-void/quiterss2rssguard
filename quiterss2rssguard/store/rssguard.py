@@ -85,7 +85,7 @@ class RssGuardStore(BaseStore):
         cursor = self._connection.cursor()
 
         # Check if feed exists by title
-        cursor.execute("SELECT id FROM Feeds WHERE title = ?", (feed.title,))
+        cursor.execute("SELECT id FROM Feeds WHERE title = ?", (feed.name,))
         existing_row = cursor.fetchone()
 
         if existing_row:
@@ -93,7 +93,7 @@ class RssGuardStore(BaseStore):
             if existing_id is None:
                 raise StoreOperationError("Database returned NULL for Feed id")
             feed.mapped_id = existing_id
-            logger.info("feed '%s' found in DB, mapped_id=%d", feed.title, feed.mapped_id)
+            logger.info("feed '%s' found in DB, mapped_id=%d", feed.name, feed.mapped_id)
             return
 
         # Get max order
@@ -119,7 +119,7 @@ class RssGuardStore(BaseStore):
             """,
             (
                 new_order,
-                feed.title,
+                feed.name,
                 feed.description,
                 feed.url,
                 self.account_id,
@@ -134,7 +134,7 @@ class RssGuardStore(BaseStore):
             raise StoreOperationError("Failed to get new feed ID after insert")
 
         feed.mapped_id = new_id
-        logger.info("feed '%s' created in DB, mapped_id=%d", feed.title, new_id)
+        logger.info("feed '%s' created in DB, mapped_id=%d", feed.name, new_id)
 
         # Update custom_id to match the new row ID
         cursor.execute("UPDATE Feeds SET custom_id = ? WHERE id = ?", (str(new_id), new_id))
@@ -161,7 +161,7 @@ class RssGuardStore(BaseStore):
 
         if news_item.feed.mapped_id == 0:
             raise StoreOperationError(
-                f"Feed '{news_item.feed.title}' must be stored before its news items."
+                f"Feed '{news_item.feed.name}' must be stored before its news items."
             )
 
         cursor = self._connection.cursor()

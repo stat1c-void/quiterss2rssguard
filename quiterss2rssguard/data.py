@@ -8,13 +8,12 @@ from dataclasses import dataclass
 class Feed:
     id: int  # id in quiterss db
     mapped_id: int  # id in rssguard db
-    name: str
-    title: str
+    name: str  # stored as `title` in rssguard db
     description: str
     url: str
     url_html: str
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f"Feed(id={self.id}, name={self.name!r})"
 
 

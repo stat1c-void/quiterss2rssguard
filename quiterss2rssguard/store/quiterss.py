@@ -70,13 +70,13 @@ class QuiteRssStore(BaseStore):
         cursor = self._connection.cursor()
         cursor.execute("""
             SELECT 
-                id, text, title, description, xmlUrl, htmlUrl
+                id, text, description, xmlUrl, htmlUrl
             FROM feeds
         """)
 
         feeds: list[Feed] = []
         for row in cursor.fetchall():
-            row_id, name, title, description, url, url_html = row
+            row_id, name, description, url, url_html = row
 
             if not name or not url:
                 logger.warning(
@@ -91,7 +91,6 @@ class QuiteRssStore(BaseStore):
                 id=row_id,
                 mapped_id=0,  # Will be assigned during migration to RSS Guard
                 name=name,
-                title=title or "",
                 description=description or "",
                 url=url,
                 url_html=url_html or "",

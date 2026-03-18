@@ -92,7 +92,6 @@ def test_read_feeds_valid_db(quite_rss_db):
     assert feed1.id == 1
     assert feed1.mapped_id == 0
     assert feed1.name == "Test Feed"
-    assert feed1.title == "Test Title"
     assert feed1.description == "Test Description"
     assert feed1.url == "https://example.com/rss"
     assert feed1.url_html == "https://example.com"
@@ -157,7 +156,6 @@ def test_read_feeds_empty_values(quite_rss_db):
     feed = feeds[0]
     assert feed.id == 2
     assert feed.name == "Valid Feed"
-    assert feed.title == "Valid Title"
     assert feed.description == "Valid Description"
     assert feed.url == "https://example.com/rss"
     assert feed.url_html == "https://example.com"
@@ -194,7 +192,7 @@ def test_read_news_items_happy_path(quite_rss_db):
         )
         conn.commit()
 
-    feed = Feed(1, 0, "Test Feed", "Test Title", "Test Description", "url", "url_html")
+    feed = Feed(1, 0, "Test Feed", "Test Description", "url", "url_html")
     with QuiteRssStore(quite_rss_db) as store:
         news_items = store.read_news_items(feed)
 
@@ -237,7 +235,7 @@ def test_read_news_items_validation(quite_rss_db):
         )
         conn.commit()
 
-    feed = Feed(1, 0, "F", "T", "D", "U", "H")
+    feed = Feed(1, 0, "F", "D", "U", "H")
     with QuiteRssStore(quite_rss_db) as store:
         news_items = store.read_news_items(feed)
 
@@ -272,7 +270,7 @@ def test_read_news_items_url_logic(quite_rss_db):
         )
         conn.commit()
 
-    feed = Feed(1, 0, "F", "T", "D", "U", "H")
+    feed = Feed(1, 0, "F", "D", "U", "H")
     with QuiteRssStore(quite_rss_db) as store:
         news_items = store.read_news_items(feed)
 
