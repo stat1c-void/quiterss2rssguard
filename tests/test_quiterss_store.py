@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+import time_machine
 
 from quiterss2rssguard.data import Feed
 from quiterss2rssguard.store import (
@@ -12,6 +13,13 @@ from quiterss2rssguard.store import (
     StoreOperationError,
     StoreValidationError,
 )
+
+
+@pytest.fixture(autouse=True)
+def frozen_time():
+    """Freeze time for all tests to ensure deterministic behavior."""
+    with time_machine.travel(dt.datetime(2026, 3, 18, 12, 0, 0)):
+        yield
 
 
 @pytest.fixture
@@ -186,16 +194,16 @@ def test_read_news_items_happy_path(quite_rss_db):
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO news (id, feedId, guid, title, author_name, link_href, published, description)
+            INSERT INTO news (id, feedId, guid, title, author_name, link_href, published, description, deleted)
             VALUES (101, 1, 'guid-1', 'News Title 1', 'Author 1', 
-                    'https://example.com/news1', '2026-03-18T12:00:00', 'Description 1')
+                    'https://example.com/news1', '2026-03-18T12:00:00', 'Description 1', 0)
             """
         )
         conn.commit()
 
     feed = Feed(1, 0, "Test Feed", "Test Description", "url", "url_html")
     with QuiteRssStore(quite_rss_db) as store:
-        news_items = store.read_news_items(feed)
+        news_items = store.read_news_items(feed, dt.timedelta(days=365))
 
     assert len(news_items) == 1
     item = news_items[0]
@@ -208,6 +216,7 @@ def test_read_news_items_happy_path(quite_rss_db):
     assert item.url == "https://example.com/news1"
     assert item.date == dt.datetime(2026, 3, 18, 12, 0)
     assert item.preview == "Description 1"
+    assert item.deleted is False
 
 
 def test_read_news_items_validation(quite_rss_db):
@@ -238,7 +247,7 @@ def test_read_news_items_validation(quite_rss_db):
 
     feed = Feed(1, 0, "F", "D", "U", "H")
     with QuiteRssStore(quite_rss_db) as store:
-        news_items = store.read_news_items(feed)
+        news_items = store.read_news_items(feed, dt.timedelta(days=365))
 
     assert len(news_items) == 1
     assert news_items[0].id == 5
@@ -273,7 +282,7 @@ def test_read_news_items_url_logic(quite_rss_db):
 
     feed = Feed(1, 0, "F", "D", "U", "H")
     with QuiteRssStore(quite_rss_db) as store:
-        news_items = store.read_news_items(feed)
+        news_items = store.read_news_items(feed, dt.timedelta(days=365))
 
     assert len(news_items) == 2
     # Check Item 1: link_href used
@@ -284,18 +293,18 @@ def test_read_news_items_url_logic(quite_rss_db):
     assert news_items[1].url == "https://guid-link.com"
 
 
-def test_read_news_items_skips_deleted(quite_rss_db):
-    """Test that news items marked as deleted are skipped."""
+def test_read_news_items_includes_recent_deleted(quite_rss_db):
+    """Test that recent news items marked as deleted are included."""
     with sqlite3.connect(quite_rss_db) as conn:
         cursor = conn.cursor()
-        # Item 1: Not deleted
+        # Item 1: Not deleted, recent
         cursor.execute(
             """
             INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
             VALUES (1, 1, 'guid-1', 'Not Deleted', '2026-01-01T00:00:00', 'url1', 0)
             """
         )
-        # Item 2: Deleted
+        # Item 2: Deleted, recent
         cursor.execute(
             """
             INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
@@ -306,8 +315,80 @@ def test_read_news_items_skips_deleted(quite_rss_db):
 
     feed = Feed(1, 0, "F", "D", "U", "H")
     with QuiteRssStore(quite_rss_db) as store:
-        news_items = store.read_news_items(feed)
+        # skip_older_than=365 days, cutoff is 2025-03-18, items are from 2026-01-01 (recent)
+        news_items = store.read_news_items(feed, dt.timedelta(days=365))
 
-    assert len(news_items) == 1
+    assert len(news_items) == 2
     assert news_items[0].id == 1
     assert news_items[0].title == "Not Deleted"
+    assert news_items[0].deleted is False
+    assert news_items[1].id == 2
+    assert news_items[1].title == "Deleted"
+    assert news_items[1].deleted is True
+
+
+def test_skip_older_than_logic(quite_rss_db):
+    """Test that old deleted items are filtered out based on skip_older_than."""
+    with sqlite3.connect(quite_rss_db) as conn:
+        cursor = conn.cursor()
+        # Item 1: Active, old (2020-01-01)
+        cursor.execute(
+            """
+            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
+            VALUES (1, 1, 'guid-1', 'Old Active', '2020-01-01T00:00:00', 'url1', 0)
+            """
+        )
+        # Item 2: Deleted, old (2020-01-01)
+        cursor.execute(
+            """
+            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
+            VALUES (2, 1, 'guid-2', 'Old Deleted', '2020-01-01T00:00:00', 'url2', 1)
+            """
+        )
+        # Item 3: Active, recent (2026-01-01)
+        cursor.execute(
+            """
+            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
+            VALUES (3, 1, 'guid-3', 'Recent Active', '2026-01-01T00:00:00', 'url3', 0)
+            """
+        )
+        # Item 4: Deleted, recent (2026-01-01)
+        cursor.execute(
+            """
+            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
+            VALUES (4, 1, 'guid-4', 'Recent Deleted', '2026-01-01T00:00:00', 'url4', 1)
+            """
+        )
+        conn.commit()
+
+    feed = Feed(1, 0, "F", "D", "U", "H")
+    with QuiteRssStore(quite_rss_db) as store:
+        # skip_older_than=365 days, cutoff is 2025-03-18
+        # Old items (2020-01-01) should be filtered for deleted items, but active items should always be included
+        news_items = store.read_news_items(feed, dt.timedelta(days=365))
+
+    # Expect: Old Active, Recent Active, Recent Deleted (3 items)
+    # Old Deleted should be skipped
+    assert len(news_items) == 3
+
+    # Check that Old Active is included
+    old_active = next((item for item in news_items if item.id == 1), None)
+    assert old_active is not None
+    assert old_active.title == "Old Active"
+    assert old_active.deleted is False
+
+    # Check that Recent Active is included
+    recent_active = next((item for item in news_items if item.id == 3), None)
+    assert recent_active is not None
+    assert recent_active.title == "Recent Active"
+    assert recent_active.deleted is False
+
+    # Check that Recent Deleted is included
+    recent_deleted = next((item for item in news_items if item.id == 4), None)
+    assert recent_deleted is not None
+    assert recent_deleted.title == "Recent Deleted"
+    assert recent_deleted.deleted is True
+
+    # Check that Old Deleted is NOT included
+    old_deleted = next((item for item in news_items if item.id == 2), None)
+    assert old_deleted is None

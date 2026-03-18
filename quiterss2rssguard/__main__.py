@@ -4,7 +4,7 @@ import logging
 import shutil
 import sys
 from argparse import Namespace
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from .store.quiterss import QuiteRssStore
@@ -45,7 +45,7 @@ def main() -> None:
                 target_store.store_feed(feed)
 
                 # Load news items for this feed and save them to target
-                news_items = source_store.read_news_items(feed)
+                news_items = source_store.read_news_items(feed, args.skip_older_than)
                 for item in news_items:
                     target_store.store_news_item(item)
 
@@ -92,7 +92,15 @@ def init_app() -> Namespace:
         type=Path,
         help="Path to the RSS Guard target database file.",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--skip-older-than",
+        type=int,
+        default=365,
+        help="Skip deleted news items older than N days (default: 365)",
+    )
+    args = parser.parse_args()
+    args.skip_older_than = timedelta(days=args.skip_older_than)
+    return args
 
 
 if __name__ == "__main__":

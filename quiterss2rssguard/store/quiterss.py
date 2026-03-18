@@ -99,12 +99,13 @@ class QuiteRssStore(BaseStore):
 
         return feeds
 
-    def read_news_items(self, feed: Feed) -> list[NewsItem]:
+    def read_news_items(self, feed: Feed, skip_older_than: dt.timedelta) -> list[NewsItem]:
         """
-        Read all news items for a given feed from the QuiteRSS database.
+        Read news items for a given feed from the QuiteRSS database.
 
         Args:
             feed: Feed object to load news items for
+            skip_older_than: Filter out deleted items older than this duration
 
         Returns:
             List of NewsItem objects
@@ -117,15 +118,18 @@ class QuiteRssStore(BaseStore):
                 "Database connection is not open. Use 'with' block or call open()."
             )
 
+        cutoff = dt.datetime.now() - skip_older_than
+        cutoff_str = cutoff.isoformat()
+
         cursor = self._connection.cursor()
         cursor.execute(
             """
             SELECT 
-                id, guid, guidislink, title, author_name, link_href, published, description
+                id, guid, guidislink, title, author_name, link_href, published, description, deleted
             FROM news
-            WHERE feedId = ? AND deleted = 0
+            WHERE feedId = ? AND (deleted = 0 OR (deleted = 1 AND published >= ?))
             """,
-            (feed.id,),
+            (feed.id, cutoff_str),
         )
 
         news_items: list[NewsItem] = []
@@ -139,6 +143,7 @@ class QuiteRssStore(BaseStore):
                 link_href,
                 published,
                 description,
+                deleted,
             ) = row
 
             if not all([row_id, guid, title, published]):
@@ -183,6 +188,7 @@ class QuiteRssStore(BaseStore):
                 url=url,
                 date=date,
                 preview=description or "",
+                deleted=bool(deleted),
             )
             news_items.append(item)
 

@@ -28,10 +28,11 @@ class NewsItem:
     url: str
     date: dt.datetime
     preview: str
+    deleted: bool
 
     def __str__(self) -> str:
-        title = (self.title[:27] + "...") if len(self.title) > 30 else self.title
+        title = (self.title[:12] + "...") if len(self.title) > 15 else self.title
         return (
-            f"NewsItem(id={self.id}, mapped_id={self.mapped_id}, "
+            f"NewsItem(id={self.id}, mapped_id={self.mapped_id}, deleted={self.deleted}, "
             f"feed={self.feed}, title={title!r})"
         )

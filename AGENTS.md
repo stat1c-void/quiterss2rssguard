@@ -91,6 +91,16 @@ from .data import Feed
 - `tests/` - Test directory
 - `docs/` - Documentation files
 
+## Database schema doc files
+
+- QuiteRSS info (schema version): docs/quiterss-db-info.md
+- QuiteRSS feeds: docs/quiterss-db-feeds.md and docs/quiterss-db-feeds-example.md
+- QuiteRSS news items: docs/quiterss-db-news.md
+- RSS Guard info (schema version): docs/rssguard-db-info.md
+- RSS Guard accounts: docs/rssguard-db-accounts.md
+- RSS Guard feeds: docs/rssguard-db-feeds.md
+- RSS Guard news items: docs/rssguard-db-messages.md
+
 ## Additional Notes
 
 - This is a database migration tool - handle SQLite connections carefully

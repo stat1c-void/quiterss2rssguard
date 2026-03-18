@@ -214,6 +214,7 @@ def test_store_new_news_item(rss_guard_db):
         url="https://example.com/news/1",
         date=dt.datetime(2023, 1, 1, tzinfo=dt.timezone.utc),
         preview="Test content",
+        deleted=False,
     )
 
     with RssGuardStore(rss_guard_db) as store:
@@ -272,6 +273,7 @@ def test_store_existing_news_item(rss_guard_db):
         url="",
         date=dt.datetime(2023, 1, 1, tzinfo=dt.timezone.utc),
         preview="",
+        deleted=False,
     )
 
     with RssGuardStore(rss_guard_db) as store:
@@ -302,6 +304,7 @@ def test_store_news_item_unmapped_feed(rss_guard_db):
         url="",
         date=dt.datetime.now(),
         preview="",
+        deleted=False,
     )
 
     with RssGuardStore(rss_guard_db) as store:
