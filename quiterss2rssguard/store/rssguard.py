@@ -179,6 +179,9 @@ class RssGuardStore(BaseStore):
         # Convert datetime to milliseconds timestamp
         timestamp_ms = int(news_item.date.timestamp() * 1000)
 
+        # Convert deleted flag to integer
+        is_deleted_value = 1 if news_item.deleted else 0
+
         # Insert new message
         cursor.execute(
             """
@@ -188,9 +191,10 @@ class RssGuardStore(BaseStore):
                 contents, enclosures, score, account_id,
                 custom_id, custom_hash, labels
             )
-            VALUES (0, 0, 0, 0, ?, ?, ?, ?, ?, ?, '[]', 0.0, ?, ?, '', '.')
+            VALUES (0, 0, ?, 0, ?, ?, ?, ?, ?, ?, '[]', 0.0, ?, ?, '', '.')
             """,
             (
+                is_deleted_value,
                 feed_custom_id,
                 news_item.title,
                 news_item.url,

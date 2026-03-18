@@ -233,18 +233,26 @@ def test_store_new_news_item(rss_guard_db):
     with sqlite3.connect(rss_guard_db) as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, title, feed, custom_id, date_created FROM Messages WHERE title = ?",
+            "SELECT id, title, feed, custom_id, date_created, is_deleted FROM Messages WHERE title = ?",
             (news_item.title,),
         )
         row = cursor.fetchone()
         assert row is not None
-        stored_id, stored_title, stored_feed_id, stored_custom_id, stored_date = row
+        (
+            stored_id,
+            stored_title,
+            stored_feed_id,
+            stored_custom_id,
+            stored_date,
+            stored_is_deleted,
+        ) = row
         assert stored_id == news_item.mapped_id
         assert stored_title == news_item.title
         assert stored_feed_id == str(feed.mapped_id)
         assert stored_custom_id == news_item.guid
         # date_created should be in milliseconds
         assert stored_date == int(news_item.date.timestamp() * 1000)
+        assert stored_is_deleted == 0  # deleted=False should store 0
 
 
 def test_store_existing_news_item(rss_guard_db):
@@ -317,3 +325,47 @@ def test_store_news_item_unmapped_feed(rss_guard_db):
     with RssGuardStore(rss_guard_db) as store:
         with pytest.raises(StoreOperationError, match="must be stored before its news items"):
             store.store_news_item(news_item)
+
+
+def test_store_news_item_deleted_true(rss_guard_db):
+    """Test storing a news item with deleted=True."""
+    feed = Feed(
+        id=1,
+        mapped_id=1,
+        name="Test Feed",
+        description="",
+        url="https://example.com/rss",
+        url_html="",
+    )
+
+    news_item = NewsItem(
+        id=1,
+        mapped_id=0,
+        feed=feed,
+        guid="test-guid-deleted",
+        title="Deleted News",
+        author="Test Author",
+        url="https://example.com/news/1",
+        date=dt.datetime(2023, 1, 1, tzinfo=dt.timezone.utc),
+        preview="Test content",
+        deleted=True,
+    )
+
+    with RssGuardStore(rss_guard_db) as store:
+        store.store_news_item(news_item)
+
+    assert news_item.mapped_id != 0
+
+    # Verify message was stored with is_deleted = 1
+    with sqlite3.connect(rss_guard_db) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, title, is_deleted FROM Messages WHERE title = ?",
+            (news_item.title,),
+        )
+        row = cursor.fetchone()
+        assert row is not None
+        stored_id, stored_title, stored_is_deleted = row
+        assert stored_id == news_item.mapped_id
+        assert stored_title == news_item.title
+        assert stored_is_deleted == 1  # deleted=True should store 1
