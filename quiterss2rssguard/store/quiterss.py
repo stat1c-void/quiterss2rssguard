@@ -123,7 +123,7 @@ class QuiteRssStore(BaseStore):
             SELECT 
                 id, guid, guidislink, title, author_name, link_href, published, description
             FROM news
-            WHERE feedId = ?
+            WHERE feedId = ? AND deleted = 0
             """,
             (feed.id,),
         )

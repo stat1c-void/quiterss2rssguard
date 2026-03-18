@@ -71,7 +71,8 @@ def quite_rss_db(db_file):
                 title          varchar,
                 published      varchar,
                 author_name    varchar,
-                link_href      varchar
+                link_href      varchar,
+                deleted        integer default 0
             )
         """)
 
@@ -281,3 +282,32 @@ def test_read_news_items_url_logic(quite_rss_db):
     # Check Item 2: guid used
     assert news_items[1].id == 2
     assert news_items[1].url == "https://guid-link.com"
+
+
+def test_read_news_items_skips_deleted(quite_rss_db):
+    """Test that news items marked as deleted are skipped."""
+    with sqlite3.connect(quite_rss_db) as conn:
+        cursor = conn.cursor()
+        # Item 1: Not deleted
+        cursor.execute(
+            """
+            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
+            VALUES (1, 1, 'guid-1', 'Not Deleted', '2026-01-01T00:00:00', 'url1', 0)
+            """
+        )
+        # Item 2: Deleted
+        cursor.execute(
+            """
+            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
+            VALUES (2, 1, 'guid-2', 'Deleted', '2026-01-01T00:00:00', 'url2', 1)
+            """
+        )
+        conn.commit()
+
+    feed = Feed(1, 0, "F", "D", "U", "H")
+    with QuiteRssStore(quite_rss_db) as store:
+        news_items = store.read_news_items(feed)
+
+    assert len(news_items) == 1
+    assert news_items[0].id == 1
+    assert news_items[0].title == "Not Deleted"
