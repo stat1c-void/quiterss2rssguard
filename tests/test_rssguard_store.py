@@ -1,9 +1,10 @@
+import datetime as dt
 import sqlite3
 
 import pytest
 
-from quiterss2rssguard.data import Feed
-from quiterss2rssguard.store import RssGuardStore, StoreValidationError
+from quiterss2rssguard.data import Feed, NewsItem
+from quiterss2rssguard.store import RssGuardStore, StoreOperationError, StoreValidationError
 
 
 @pytest.fixture
@@ -71,6 +72,31 @@ def rss_guard_db(db_file):
                 account_id                INTEGER NOT NULL,
                 custom_id                 TEXT    NOT NULL CHECK (custom_id != ''),
                 custom_data               TEXT,
+                FOREIGN KEY (account_id) REFERENCES Accounts (id) ON DELETE CASCADE
+            )
+        """)
+
+        # Create Messages table
+        cursor.execute("""
+            CREATE TABLE Messages
+            (
+                id           INTEGER PRIMARY KEY,
+                is_read      INTEGER NOT NULL DEFAULT 0 CHECK (is_read >= 0 AND is_read <= 1),
+                is_important INTEGER NOT NULL DEFAULT 0 CHECK (is_important >= 0 AND is_important <= 1),
+                is_deleted   INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted >= 0 AND is_deleted <= 1),
+                is_pdeleted  INTEGER NOT NULL DEFAULT 0 CHECK (is_pdeleted >= 0 AND is_pdeleted <= 1),
+                feed         TEXT    NOT NULL,
+                title        TEXT    NOT NULL CHECK (title != ''),
+                url          TEXT,
+                author       TEXT,
+                date_created BIGINT  NOT NULL CHECK (date_created >= 0),
+                contents     TEXT,
+                enclosures   TEXT,
+                score        REAL    NOT NULL DEFAULT 0.0 CHECK (score >= 0.0 AND score <= 100.0),
+                account_id   INTEGER NOT NULL,
+                custom_id    TEXT,
+                custom_hash  TEXT,
+                labels       TEXT    NOT NULL DEFAULT ".",
                 FOREIGN KEY (account_id) REFERENCES Accounts (id) ON DELETE CASCADE
             )
         """)
@@ -168,3 +194,122 @@ def test_store_existing_feed(rss_guard_db):
 
     # Verify mapped_id is updated
     assert feed.mapped_id == 1
+
+
+def test_store_new_news_item(rss_guard_db):
+    """Test storing a new news item."""
+    feed = Feed(
+        id=1,
+        mapped_id=1,
+        name="Test Feed",
+        title="Test Title",
+        description="",
+        url="https://example.com/rss",
+        url_html="",
+    )
+
+    news_item = NewsItem(
+        id=1,
+        mapped_id=0,
+        feed=feed,
+        guid="test-guid",
+        title="Test News",
+        author="Test Author",
+        url="https://example.com/news/1",
+        date=dt.datetime(2023, 1, 1, tzinfo=dt.timezone.utc),
+        preview="Test content",
+    )
+
+    with RssGuardStore(rss_guard_db) as store:
+        store.store_news_item(news_item)
+
+    assert news_item.mapped_id != 0
+
+    # Verify message was stored
+    with sqlite3.connect(rss_guard_db) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, title, feed, custom_id, date_created FROM Messages WHERE title = ?",
+            (news_item.title,),
+        )
+        row = cursor.fetchone()
+        assert row is not None
+        stored_id, stored_title, stored_feed_id, stored_custom_id, stored_date = row
+        assert stored_id == news_item.mapped_id
+        assert stored_title == news_item.title
+        assert stored_feed_id == str(feed.mapped_id)
+        assert stored_custom_id == news_item.guid
+        # date_created should be in milliseconds
+        assert stored_date == int(news_item.date.timestamp() * 1000)
+
+
+def test_store_existing_news_item(rss_guard_db):
+    """Test storing an existing news item (by guid)."""
+    feed = Feed(
+        id=1,
+        mapped_id=1,
+        name="Test Feed",
+        title="Test Title",
+        description="",
+        url="https://example.com/rss",
+        url_html="",
+    )
+
+    # Insert a message first
+    with sqlite3.connect(rss_guard_db) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO Messages (feed, title, date_created, account_id, custom_id)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            ("1", "Existing News", 1672531200000, 1, "existing-guid"),
+        )
+        conn.commit()
+
+    news_item = NewsItem(
+        id=99,
+        mapped_id=0,
+        feed=feed,
+        guid="existing-guid",
+        title="New News Title",  # Different title, but same GUID
+        author="",
+        url="",
+        date=dt.datetime(2023, 1, 1, tzinfo=dt.timezone.utc),
+        preview="",
+    )
+
+    with RssGuardStore(rss_guard_db) as store:
+        store.store_news_item(news_item)
+
+    # Should map to existing id 1
+    assert news_item.mapped_id == 1
+
+
+def test_store_news_item_unmapped_feed(rss_guard_db):
+    """Test storing a news item whose feed has not been mapped yet."""
+    feed = Feed(
+        id=1,
+        mapped_id=0,  # Not mapped
+        name="Test Feed",
+        title="Test Title",
+        description="",
+        url="https://example.com/rss",
+        url_html="",
+    )
+
+    news_item = NewsItem(
+        id=1,
+        mapped_id=0,
+        feed=feed,
+        guid="guid",
+        title="Title",
+        author="",
+        url="",
+        date=dt.datetime.now(),
+        preview="",
+    )
+
+    with RssGuardStore(rss_guard_db) as store:
+        with pytest.raises(StoreOperationError, match="must be stored before its news items"):
+            store.store_news_item(news_item)
