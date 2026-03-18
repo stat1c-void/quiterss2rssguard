@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import datetime as dt
 from dataclasses import dataclass
 
 
@@ -13,3 +16,16 @@ class Feed:
 
     def __repr__(self) -> str:
         return f"Feed(id={self.id}, name={self.name!r})"
+
+
+@dataclass
+class NewsItem:
+    id: int  # id in quiterss db
+    mapped_id: int  # id in rssguard db
+    feed: Feed
+    guid: str
+    title: str
+    author: str
+    url: str
+    date: dt.datetime
+    preview: str
