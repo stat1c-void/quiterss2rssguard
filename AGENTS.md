@@ -15,14 +15,12 @@ Remember to use `uv` to run python commands.
 ### Development Commands
 
 - `uv run python -m quiterss2rssguard` - Run the main script
-- `uv run poe lint` - Run linting checks (uv lock, ruff format, ruff check, ty check)
-- `uv run poe format` - Format code (ruff check --select I --fix, ruff format)
+- `poe lint` - Run linting checks (uv lock, ruff format, ruff check, ty check)
+- `poe format` - Format code (ruff check --select I --fix, ruff format)
 
 ### Testing
 
-There are currently no tests in this project. When adding tests:
-
-- Use `uv run pytest` or `uv run python -m pytest`
+- Use `uv run pytest` or `uv run python -m pytest` to run tests
 - Run a single test: `uv run pytest tests/test_file.py::test_function`
 - Run tests in specific directory: `uv run pytest tests/`
 
@@ -84,11 +82,18 @@ from .data import Feed
 ## Project Structure
 
 - `quiterss2rssguard/` - Main package directory
+    - `__init__.py` - Package initialization
     - `__main__.py` - Entry point
     - `data.py` - Data models (dataclasses)
-    - `__init__.py` - Package initialization
-    - `store/quiterss.py` - QuiteRSS database store implementation
+    - `store/` - Store implementations
+        - `__init__.py` - Package initialization
+        - `base.py` - Base store class
+        - `quiterss.py` - QuiteRSS database store
+        - `rssguard.py` - RSS Guard database store
 - `tests/` - Test directory
+    - `conftest.py` - Pytest configuration
+    - `test_quiterss_store.py` - QuiteRSS store tests
+    - `test_rssguard_store.py` - RSS Guard store tests
 - `docs/` - Documentation files
 
 ## Database schema doc files
