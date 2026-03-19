@@ -1,7 +1,7 @@
 # quiterss2rssguard
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/stat1c-void/quiterss2rssguard/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/stat1c-void/quiterss2rssguard/blob/main/LICENSE.txt)
 
 A database migration tool that transfers feed data from QuiteRSS to RSS Guard.
 
@@ -172,7 +172,7 @@ Contributions are welcome! Please ensure:
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE.txt)
 
 ## Disclaimer
 
