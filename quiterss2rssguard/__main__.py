@@ -86,21 +86,26 @@ def init_app() -> Namespace:
     parser.add_argument(
         "source",
         type=Path,
-        help="Path to the QuiteRSS source database file.",
+        help="path to the QuiteRSS source database file",
     )
     parser.add_argument(
         "target",
         type=Path,
-        help="Path to the RSS Guard target database file.",
+        help="path to the RSS Guard target database file",
     )
+    parser.add_argument("-d", "--debug", action="store_true", help="enable debug logging")
     parser.add_argument(
         "--skip-older-than",
         type=int,
         default=365,
-        help="Skip deleted news items older than N days (default: 365)",
+        help="skip deleted news items older than N days (default: %(default)s)",
     )
     args = parser.parse_args()
     args.skip_older_than = timedelta(days=args.skip_older_than)
+
+    if args.debug:
+        logging.getLogger().setLevel("DEBUG")
+
     return args
 
 
