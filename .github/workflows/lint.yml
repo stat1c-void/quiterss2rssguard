@@ -28,6 +28,9 @@ jobs:
       - name: Check lock file
         run: uv lock --check
 
+      - name: Sync dependencies
+        run: uv sync
+
       - name: Run ruff format check
         uses: astral-sh/ruff-action@v3
         with:
