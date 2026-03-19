@@ -80,7 +80,9 @@ def init_app() -> Namespace:
     )
 
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Migrate feed data from QuiteRSS to RSS Guard.")
+    parser = argparse.ArgumentParser(
+        prog="quiterss2rssguard", description="Migrate feed data from QuiteRSS to RSS Guard."
+    )
     parser.add_argument(
         "source",
         type=Path,
