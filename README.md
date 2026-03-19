@@ -58,18 +58,19 @@ python -m quiterss2rssguard /path/to/feeds.db /path/to/database.db
 ### Command-line Options
 
 ```bash
-usage: quiterss2rssguard [-h] [--skip-older-than SKIP_OLDER_THAN] source target
+usage: quiterss2rssguard [-h] [-d] [--skip-older-than SKIP_OLDER_THAN] source target
 
 Migrate feed data from QuiteRSS to RSS Guard.
 
 positional arguments:
-  source                Path to the QuiteRSS source database file.
-  target                Path to the RSS Guard target database file.
+  source                path to the QuiteRSS source database file
+  target                path to the RSS Guard target database file
 
 options:
   -h, --help            show this help message and exit
+  -d, --debug           enable debug logging
   --skip-older-than SKIP_OLDER_THAN
-                        Skip deleted news items older than N days (default: 365)
+                        skip deleted news items older than N days (default: 365)
 ```
 
 ### Examples
