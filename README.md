@@ -179,6 +179,11 @@ Contributions are welcome! Please ensure:
 This tool modifies SQLite database files. **Always back up your databases** before running the migration. The authors
 are not responsible for data loss.
 
+## AI Note
+
+Large mundane parts of this codebase are created with AI assistance. However, developer & maintainer has read & vetted
+100% of the code.
+
 ## Support
 
 - Report issues: [GitHub Issues](https://github.com/stat1c-void/quiterss2rssguard/issues)
