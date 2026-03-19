@@ -28,6 +28,24 @@ A database migration tool that transfers feed data from QuiteRSS to RSS Guard.
 - **Recommended**: Ensure the following setting in RSS Guard is *enabled*:
     - Settings → Feeds & articles → Articles → "Ignore changes in article body when new articles are being fetched"
 
+## Known Limitations
+
+### Flat Structure
+
+The target feed list is **flat** - folder hierarchy is not migrated. All feeds will appear at the root level in RSS
+Guard.
+
+### Manual Metadata Fetch Required
+
+After migration, you should manually run "Fetch metadata" on feeds in RSS Guard:
+
+- ⚠️ If you had customized feed titles, this operation will reset them to the feed's default title
+
+### Deleted Items May Reappear
+
+Old deleted news items may reappear when feeds are updated after migration. This is because RSS Guard fetches fresh
+content from the feed, and the tool may have discarded those items during migration (`--skip-older-than`).
+
 ## Installation
 
 Since this project is not published to PyPI, you need to download or clone it first.
@@ -106,24 +124,6 @@ python -m quiterss2rssguard \
 Check the application's "Help → About → Resources" dialog for your exact paths.
 
 **⚠️ Important**: Always back up your databases before running the migration!
-
-## Known Limitations
-
-### Flat Structure
-
-The target feed list is **flat** - folder hierarchy is not migrated. All feeds will appear at the root level in RSS
-Guard.
-
-### Manual Metadata Fetch Required
-
-After migration, you should manually run "Fetch metadata" on feeds in RSS Guard:
-
-- ⚠️ If you had customized feed titles, this operation will reset them to the feed's default title
-
-### Deleted Items May Reappear
-
-Old deleted news items may reappear when feeds are updated after migration. This is because RSS Guard fetches fresh
-content from the feed, and the tool may have discarded those items during migration (`--skip-older-than`).
 
 ## Development
 
