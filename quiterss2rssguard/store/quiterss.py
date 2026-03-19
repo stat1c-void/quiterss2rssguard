@@ -163,7 +163,7 @@ class QuiteRssStore(BaseStore):
                     continue
 
             try:
-                date = dt.datetime.fromisoformat(published)
+                date = dt.datetime.fromisoformat(published).replace(tzinfo=dt.timezone.utc)
             except ValueError:
                 logger.warning(
                     "skipping news item with id %s: invalid date format %r",

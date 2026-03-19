@@ -221,7 +221,7 @@ def test_read_news_items_happy_path(quite_rss_db):
     assert item.title == "News Title 1"
     assert item.author == "Author 1"
     assert item.url == "https://example.com/news1"
-    assert item.date == dt.datetime(2026, 3, 18, 12, 0)
+    assert item.date == dt.datetime(2026, 3, 18, 12, 0, tzinfo=dt.timezone.utc)
     assert item.preview == "Description 1"
     assert item.deleted is False
 
