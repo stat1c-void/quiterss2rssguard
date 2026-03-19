@@ -76,12 +76,12 @@ options:
 
 ```bash
 # Basic migration with defaults
-uv run python -m quiterss2rssguard \
+python -m quiterss2rssguard \
   ~/.local/share/QuiteRss/QuiteRss/feeds.db \
   ~/.config/RSS\ Guard\ 4/database/database.db
 
 # Only migrate news items deleted in the last 90 days
-uv run python -m quiterss2rssguard \
+python -m quiterss2rssguard \
   --skip-older-than 90 \
   ~/.local/share/QuiteRss/QuiteRss/feeds.db \
   ~/.config/RSS\ Guard\ 4/database/database.db
