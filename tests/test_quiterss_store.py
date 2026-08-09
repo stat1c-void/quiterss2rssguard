@@ -18,7 +18,7 @@ from quiterss2rssguard.store import (
 @pytest.fixture(autouse=True)
 def frozen_time():
     """Freeze time for all tests to ensure deterministic behavior."""
-    with time_machine.travel(dt.datetime(2026, 3, 18, 12, 0, 0)):
+    with time_machine.travel(dt.datetime(2026, 3, 18, 12, 0, 0, tzinfo=dt.UTC)):
         yield
 
 
@@ -64,13 +64,13 @@ def quite_rss_db(db_file):
         # Insert sample feed data
         cursor.execute("""
             INSERT INTO feeds (id, text, title, description, xmlUrl, htmlUrl)
-            VALUES (1, 'Test Feed', 'Test Title', 'Test Description', 
+            VALUES (1, 'Test Feed', 'Test Title', 'Test Description',
                     'https://example.com/rss', 'https://example.com')
         """)
 
         cursor.execute("""
             INSERT INTO feeds (id, text, title, description, xmlUrl, htmlUrl)
-            VALUES (2, 'Another Feed', 'Another Title', 'Another Description', 
+            VALUES (2, 'Another Feed', 'Another Title', 'Another Description',
                     'https://example2.com/rss', 'https://example2.com')
         """)
 
@@ -123,9 +123,11 @@ def test_read_feeds_nonexistent_db():
     with tempfile.TemporaryDirectory() as tmpdir:
         non_existent_db = Path(tmpdir) / "nonexistent.db"
 
-        with pytest.raises(StoreConnectionError, match="Database file not found"):
-            with QuiteRssStore(non_existent_db):
-                pass
+        with (
+            pytest.raises(StoreConnectionError, match="Database file not found"),
+            QuiteRssStore(non_existent_db),
+        ):
+            pass
 
 
 def test_read_feeds_wrong_version(quite_rss_db):
@@ -135,9 +137,11 @@ def test_read_feeds_wrong_version(quite_rss_db):
         cursor.execute("UPDATE info SET value = '16' WHERE id = 1")
         conn.commit()
 
-    with pytest.raises(StoreValidationError, match="Unsupported database version"):
-        with QuiteRssStore(quite_rss_db):
-            pass
+    with (
+        pytest.raises(StoreValidationError, match="Unsupported database version"),
+        QuiteRssStore(quite_rss_db),
+    ):
+        pass
 
 
 def test_read_feeds_empty_values(quite_rss_db):
@@ -158,7 +162,7 @@ def test_read_feeds_empty_values(quite_rss_db):
         # Insert a valid feed
         cursor.execute("""
             INSERT INTO feeds (id, text, title, description, xmlUrl, htmlUrl)
-            VALUES (2, 'Valid Feed', 'Valid Title', 'Valid Description', 
+            VALUES (2, 'Valid Feed', 'Valid Title', 'Valid Description',
                     'https://example.com/rss', 'https://example.com')
         """)
 
@@ -202,7 +206,7 @@ def test_read_news_items_happy_path(quite_rss_db):
         cursor.execute(
             """
             INSERT INTO news (id, feedId, guid, title, author_name, link_href, published, description, deleted)
-            VALUES (101, 1, 'guid-1', 'News Title 1', 'Author 1', 
+            VALUES (101, 1, 'guid-1', 'News Title 1', 'Author 1',
                     'https://example.com/news1', '2026-03-18T12:00:00', 'Description 1', 0)
             """
         )
@@ -221,7 +225,7 @@ def test_read_news_items_happy_path(quite_rss_db):
     assert item.title == "News Title 1"
     assert item.author == "Author 1"
     assert item.url == "https://example.com/news1"
-    assert item.date == dt.datetime(2026, 3, 18, 12, 0, tzinfo=dt.timezone.utc)
+    assert item.date == dt.datetime(2026, 3, 18, 12, 0, tzinfo=dt.UTC)
     assert item.preview == "Description 1"
     assert item.deleted is False
 
@@ -267,21 +271,21 @@ def test_read_news_items_url_logic(quite_rss_db):
         # Item 1: link_href is set, guidislink is ignored
         cursor.execute(
             """
-            INSERT INTO news (id, feedId, guid, guidislink, title, published, link_href) 
+            INSERT INTO news (id, feedId, guid, guidislink, title, published, link_href)
             VALUES (1, 1, 'guid-1', 'false', 'T1', '2026-01-01T00:00:00', 'https://link.com')
             """
         )
         # Item 2: link_href is empty, guidislink is true -> use guid
         cursor.execute(
             """
-            INSERT INTO news (id, feedId, guid, guidislink, title, published, link_href) 
+            INSERT INTO news (id, feedId, guid, guidislink, title, published, link_href)
             VALUES (2, 1, 'https://guid-link.com', 'true', 'T2', '2026-01-01T00:00:00', NULL)
             """
         )
         # Item 3: link_href is empty, guidislink is false -> skip
         cursor.execute(
             """
-            INSERT INTO news (id, feedId, guid, guidislink, title, published, link_href) 
+            INSERT INTO news (id, feedId, guid, guidislink, title, published, link_href)
             VALUES (3, 1, 'guid-3', 'false', 'T3', '2026-01-01T00:00:00', '')
             """
         )
@@ -307,14 +311,14 @@ def test_read_news_items_includes_recent_deleted(quite_rss_db):
         # Item 1: Not deleted, recent
         cursor.execute(
             """
-            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
+            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted)
             VALUES (1, 1, 'guid-1', 'Not Deleted', '2026-01-01T00:00:00', 'url1', 0)
             """
         )
         # Item 2: Deleted, recent
         cursor.execute(
             """
-            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
+            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted)
             VALUES (2, 1, 'guid-2', 'Deleted', '2026-01-01T00:00:00', 'url2', 1)
             """
         )
@@ -341,28 +345,28 @@ def test_skip_older_than_logic(quite_rss_db):
         # Item 1: Active, old (2020-01-01)
         cursor.execute(
             """
-            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
+            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted)
             VALUES (1, 1, 'guid-1', 'Old Active', '2020-01-01T00:00:00', 'url1', 0)
             """
         )
         # Item 2: Deleted, old (2020-01-01)
         cursor.execute(
             """
-            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
+            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted)
             VALUES (2, 1, 'guid-2', 'Old Deleted', '2020-01-01T00:00:00', 'url2', 1)
             """
         )
         # Item 3: Active, recent (2026-01-01)
         cursor.execute(
             """
-            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
+            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted)
             VALUES (3, 1, 'guid-3', 'Recent Active', '2026-01-01T00:00:00', 'url3', 0)
             """
         )
         # Item 4: Deleted, recent (2026-01-01)
         cursor.execute(
             """
-            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted) 
+            INSERT INTO news (id, feedId, guid, title, published, link_href, deleted)
             VALUES (4, 1, 'guid-4', 'Recent Deleted', '2026-01-01T00:00:00', 'url4', 1)
             """
         )

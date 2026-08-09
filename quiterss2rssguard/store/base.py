@@ -5,7 +5,7 @@ Base class for database store implementations.
 import logging
 import sqlite3
 from pathlib import Path
-from typing import Optional, Self
+from typing import Self
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class BaseStore:
         :type db_path: Path
         """
         self.db_path = db_path
-        self._connection: Optional[sqlite3.Connection] = None
+        self._connection: sqlite3.Connection | None = None
 
     def open(self) -> Self:
         """

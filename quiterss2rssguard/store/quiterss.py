@@ -65,7 +65,7 @@ class QuiteRssStore(BaseStore):
 
         cursor = self._connection.cursor()
         cursor.execute("""
-            SELECT 
+            SELECT
                 id, text, description, xmlUrl, htmlUrl
             FROM feeds
         """)
@@ -112,13 +112,13 @@ class QuiteRssStore(BaseStore):
                 "Database connection is not open. Use 'with' block or call open()."
             )
 
-        cutoff = dt.datetime.now() - skip_older_than
+        cutoff = dt.datetime.now(tz=dt.UTC) - skip_older_than
         cutoff_str = cutoff.isoformat()
 
         cursor = self._connection.cursor()
         cursor.execute(
             """
-            SELECT 
+            SELECT
                 id, guid, guidislink, title, author_name, link_href, published, description, deleted
             FROM news
             WHERE feedId = ? AND (deleted = 0 OR (deleted = 1 AND published >= ?))
@@ -163,7 +163,7 @@ class QuiteRssStore(BaseStore):
                     continue
 
             try:
-                date = dt.datetime.fromisoformat(published).replace(tzinfo=dt.timezone.utc)
+                date = dt.datetime.fromisoformat(published).replace(tzinfo=dt.UTC)
             except ValueError:
                 logger.warning(
                     "skipping news item with id %s: invalid date format %r",

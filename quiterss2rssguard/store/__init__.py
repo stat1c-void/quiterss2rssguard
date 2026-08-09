@@ -7,8 +7,8 @@ from .rssguard import RssGuardStore
 __all__ = [
     "QuiteRssStore",
     "RssGuardStore",
-    "StoreError",
     "StoreConnectionError",
-    "StoreValidationError",
+    "StoreError",
     "StoreOperationError",
+    "StoreValidationError",
 ]

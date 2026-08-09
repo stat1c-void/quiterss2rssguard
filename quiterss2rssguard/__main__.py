@@ -66,7 +66,7 @@ def backup_database(path: Path) -> Path:
     :return: Path to the created backup file
     :rtype: Path
     """
-    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")  # noqa: DTZ005
     backup_path = path.with_suffix(f".{timestamp}.bak")
     shutil.copy(path, backup_path)
     return backup_path

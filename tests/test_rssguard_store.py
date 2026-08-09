@@ -126,9 +126,11 @@ def test_open_wrong_version(rss_guard_db):
         cursor.execute("UPDATE Information SET inf_value = '7' WHERE inf_key = 'schema_version'")
         conn.commit()
 
-    with pytest.raises(StoreValidationError, match="Unsupported database schema version"):
-        with RssGuardStore(rss_guard_db):
-            pass
+    with (
+        pytest.raises(StoreValidationError, match="Unsupported database schema version"),
+        RssGuardStore(rss_guard_db),
+    ):
+        pass
 
 
 def test_open_no_std_rss_account(rss_guard_db):
@@ -138,9 +140,11 @@ def test_open_no_std_rss_account(rss_guard_db):
         cursor.execute("DELETE FROM Accounts")
         conn.commit()
 
-    with pytest.raises(StoreValidationError, match="No 'std-rss' account found"):
-        with RssGuardStore(rss_guard_db):
-            pass
+    with (
+        pytest.raises(StoreValidationError, match="No 'std-rss' account found"),
+        RssGuardStore(rss_guard_db),
+    ):
+        pass
 
 
 def test_store_new_feed(rss_guard_db):
@@ -166,7 +170,7 @@ def test_store_new_feed(rss_guard_db):
         )
         row = cursor.fetchone()
         assert row is not None
-        stored_id, stored_title, stored_source, stored_custom_id, stored_account_id = row
+        stored_id, _stored_title, stored_source, stored_custom_id, stored_account_id = row
         assert stored_source == feed.url
         assert stored_account_id == 1
         assert stored_custom_id == str(stored_id)  # Should be updated to match id
@@ -219,7 +223,7 @@ def test_store_new_news_item(rss_guard_db):
         title="Test News",
         author="Test Author",
         url="https://example.com/news/1",
-        date=dt.datetime(2023, 1, 1, tzinfo=dt.timezone.utc),
+        date=dt.datetime(2023, 1, 1, tzinfo=dt.UTC),
         preview="Test content",
         deleted=False,
     )
@@ -286,7 +290,7 @@ def test_store_existing_news_item(rss_guard_db):
         title="New News Title",  # Different title, but same GUID
         author="",
         url="",
-        date=dt.datetime(2023, 1, 1, tzinfo=dt.timezone.utc),
+        date=dt.datetime(2023, 1, 1, tzinfo=dt.UTC),
         preview="",
         deleted=False,
     )
@@ -317,14 +321,16 @@ def test_store_news_item_unmapped_feed(rss_guard_db):
         title="Title",
         author="",
         url="",
-        date=dt.datetime.now(),
+        date=dt.datetime.now(tz=dt.UTC),
         preview="",
         deleted=False,
     )
 
-    with RssGuardStore(rss_guard_db) as store:
-        with pytest.raises(StoreOperationError, match="must be stored before its news items"):
-            store.store_news_item(news_item)
+    with (
+        RssGuardStore(rss_guard_db) as store,
+        pytest.raises(StoreOperationError, match="must be stored before its news items"),
+    ):
+        store.store_news_item(news_item)
 
 
 def test_store_news_item_deleted_true(rss_guard_db):
@@ -346,7 +352,7 @@ def test_store_news_item_deleted_true(rss_guard_db):
         title="Deleted News",
         author="Test Author",
         url="https://example.com/news/1",
-        date=dt.datetime(2023, 1, 1, tzinfo=dt.timezone.utc),
+        date=dt.datetime(2023, 1, 1, tzinfo=dt.UTC),
         preview="Test content",
         deleted=True,
     )
