@@ -2,6 +2,8 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/stat1c-void/quiterss2rssguard/blob/main/LICENSE.txt)
+[![Lint](https://github.com/stat1c-void/quiterss2rssguard/actions/workflows/lint.yml/badge.svg)](https://github.com/stat1c-void/quiterss2rssguard/actions/workflows/lint.yml)
+[![Pytest](https://github.com/stat1c-void/quiterss2rssguard/actions/workflows/pytest.yml/badge.svg)](https://github.com/stat1c-void/quiterss2rssguard/actions/workflows/pytest.yml)
 
 A database migration tool that transfers feed data from QuiteRSS to RSS Guard.
 
